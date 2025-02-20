@@ -10,10 +10,13 @@ import (
 )
 
 type junitXML struct {
-	TestCases []struct {
-		File string  `xml:"file,attr"`
-		Time float64 `xml:"time,attr"`
-	} `xml:"testcase"`
+	Testsuites []struct {
+		TestCases []struct {
+			Name string  `xml:"name,attr"`
+			File string  `xml:"file,attr"`
+			Time float64 `xml:"time,attr"`
+		} `xml:"testcase"`
+	} `xml:"testsuite"`
 }
 
 func loadJUnitXML(reader io.Reader) *junitXML {
@@ -30,9 +33,11 @@ func loadJUnitXML(reader io.Reader) *junitXML {
 
 func addFileTimesFromIOReader(fileTimes map[string]float64, reader io.Reader) {
 	junitXML := loadJUnitXML(reader)
-	for _, testCase := range junitXML.TestCases {
-		filePath := path.Clean(testCase.File)
-		fileTimes[filePath] += testCase.Time
+	for _, testSuite := range junitXML.Testsuites {
+		for _, testCase := range testSuite.TestCases {
+			filePath := path.Clean(testCase.File)
+			fileTimes[filePath] += testCase.Time
+		}
 	}
 }
 
